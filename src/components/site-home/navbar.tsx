@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,8 +11,8 @@ import { ModeToggle } from '../mode-toggle'
 import { BookOpen, CreditCard, Zap } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 
-import { LoadingSwap } from '../shared/loading-swap'
 import { UserDropdown } from './user-dropdown'
+import { useEffect, useState } from 'react'
 
 const navItems = [
   { name: 'Features', href: '#features', icon: Zap },
@@ -21,8 +21,17 @@ const navItems = [
 ]
 
 export function Navbar() {
+  const [hasAdminPermission, setHasAdminPermission] = useState(false)
   const { data: session, isPending } = authClient.useSession()
   const user = session?.user
+
+  useEffect(() => {
+    authClient.admin
+      .hasPermission({ permission: { user: ['list'] } })
+      .then(({ data }) => {
+        setHasAdminPermission(data?.success ?? false)
+      })
+  }, [])
 
   return (
     <header className='bg-background/95 backdrop-blur-[backdrop-filter]:bg-background sticky top-0 z-50 w-full border-b'>
@@ -53,6 +62,16 @@ export function Navbar() {
             ))}
           </div>
           <div className='flex items-center space-x-4'>
+            {hasAdminPermission && (
+              <>
+                <Button variant='outline' asChild size='lg'>
+                  <Link href='/admin'>Admin</Link>
+                </Button>
+              </>
+            )}
+            <Button variant='outline' asChild size='lg'>
+              <Link href='/settings'>Settings</Link>
+            </Button>
             <ModeToggle />
             {user ? (
               <div className='flex items-center gap-3'>

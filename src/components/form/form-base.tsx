@@ -124,6 +124,23 @@ export const FormInput: FormControlFunc = props => {
     </FormBase>
   )
 }
+export const FormNumberInput: FormControlFunc = props => {
+  return (
+    <FormBase {...props}>
+      {({ onChange, value, ...field }) => (
+        <Input
+          {...props}
+          onChange={e => {
+            const number = e.target.valueAsNumber
+            onChange(isNaN(number) ? null : number)
+          }}
+          value={value ?? ''}
+          type='number'
+        />
+      )}
+    </FormBase>
+  )
+}
 
 export const FormPasswordInput: FormControlFunc = props => {
   const [showPassword, setShowPassword] = useState(false)

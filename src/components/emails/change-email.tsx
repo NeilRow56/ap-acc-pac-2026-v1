@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
   Html,
   Head,
@@ -11,7 +10,6 @@ import {
   Tailwind
 } from '@react-email/components'
 import { APP_ADDRESS1, APP_ADDRESS2, APP_NAME } from '@/lib/constants'
-import Link from 'next/link'
 
 interface VerifyEmailProps {
   verifyUrl: string
@@ -77,7 +75,7 @@ const VerifyChangeEmail = (props: VerifyEmailProps) => {
               </Text>
 
               <Text className='m-0 mt-2 text-center text-[12px] leading-4 text-gray-400'>
-                | © 2025 {APP_NAME}. All rights reserved.
+                | © 2026 {APP_NAME}. All rights reserved.
               </Text>
             </Section>
           </Container>
