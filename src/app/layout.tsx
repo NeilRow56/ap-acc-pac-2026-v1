@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 
 import { ThemeProvider } from '@/components/theme-provider'
 import { APP_DESCRIPTION, APP_NAME } from '@/lib/constants'
+import { ImpersonationIndicator } from './auth/_components/imperonation-indicator'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -55,6 +56,7 @@ export default function RootLayout({
               }
             }}
           />
+          <ImpersonationIndicator />
         </ThemeProvider>
       </body>
     </html>
