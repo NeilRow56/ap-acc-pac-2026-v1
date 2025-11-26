@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 
-import { User } from '@/db/schema/auth-schema'
 import AddOrganizationDialog from './add-organization-dialog'
 
 export const AddOrganizationButton = () => {

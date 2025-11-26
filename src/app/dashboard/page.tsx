@@ -22,6 +22,7 @@ import { AddOrganizationButton } from './_components/add-organization-button'
 import { Suspense } from 'react'
 import { SkeletonArray } from '@/components/shared/skeleton'
 import { SkeletonCustomerCard } from '@/components/shared/skeleton-customer-card'
+import OrganizationsTable from './_components/organizations-table'
 
 export default async function DashboardPage() {
   const organizations = await getOrganizations()
@@ -69,8 +70,7 @@ export default async function DashboardPage() {
             </SkeletonArray>
           }
         >
-          Organization table
-          {/* <CategoriesTable data={data} total={total} user={user} /> */}
+          <OrganizationsTable organizations={organizations} total={total} />
         </Suspense>
       </div>
     </>
