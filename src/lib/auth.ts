@@ -3,6 +3,7 @@ import ForgotPasswordEmail from '@/components/emails/reset-password'
 import VerifyEmail from '@/components/emails/verify-email'
 import { db } from '@/db'
 import { betterAuth } from 'better-auth'
+import { organization } from 'better-auth/plugins'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin as adminPlugin } from 'better-auth/plugins/admin'
 import { nextCookies } from 'better-auth/next-js'
@@ -65,7 +66,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg'
   }),
-  plugins: [nextCookies(), adminPlugin()]
+  plugins: [organization(), nextCookies(), adminPlugin()]
 })
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'

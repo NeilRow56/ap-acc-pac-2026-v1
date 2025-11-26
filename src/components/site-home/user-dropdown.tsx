@@ -57,7 +57,7 @@ export function UserDropdown({ name, email, image }: iAppProps) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link className='flex items-center' href='/admin/clients'>
+            <Link className='flex items-center' href='/clients'>
               <BookOpenIcon
                 size={16}
                 className='opacity-60'
@@ -67,13 +67,23 @@ export function UserDropdown({ name, email, image }: iAppProps) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link className='flex items-center' href='/admin/dashboard'>
+            <Link className='flex items-center' href='/dashboard'>
               <BookOpenIcon
                 size={16}
                 className='opacity-60'
                 aria-hidden='true'
               />
               <span>Dashboard</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link className='flex items-center' href='/categories'>
+              <BookOpenIcon
+                size={16}
+                className='opacity-60'
+                aria-hidden='true'
+              />
+              <span>Categories</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
