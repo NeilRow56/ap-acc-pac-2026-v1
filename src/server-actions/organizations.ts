@@ -5,6 +5,7 @@ import { eq, inArray } from 'drizzle-orm'
 import { member, organization } from '@/db/schema'
 import { getCurrentUser } from './users'
 import { db } from '@/db'
+import { revalidatePath } from 'next/cache'
 
 export async function getOrganizations() {
   const { currentUser } = await getCurrentUser()
@@ -56,6 +57,16 @@ export async function getOrganizationBySlug(slug: string) {
   } catch (error) {
     console.error(error)
     return null
+  }
+}
+
+export const deleteOrganization = async (id: string, path: string) => {
+  try {
+    await db.delete(organization).where(eq(organization.id, id))
+    revalidatePath(path)
+    return { success: true, message: 'Organization deleted successfully' }
+  } catch {
+    return { success: false, message: 'Failed to delete organization' }
   }
 }
 

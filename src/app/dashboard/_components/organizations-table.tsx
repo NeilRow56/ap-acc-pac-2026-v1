@@ -8,15 +8,13 @@ import { toast } from 'sonner'
 import { usePathname } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 
-import { User } from '@/db/schema/auth-schema'
-
 import { EmptyState } from '@/components/shared/empty-state'
 
 import { deleteCategory } from '@/server-actions/categories'
 import ConfirmationDialog from '@/components/shared/confirmation-dialog'
 import { columns, Organization } from './columns'
 import { AddOrganizationButton } from './add-organization-button'
-import { authClient } from '@/lib/auth-client'
+import { deleteOrganization } from '@/server-actions/organizations'
 
 type Props = {
   organizations: {
@@ -49,15 +47,13 @@ export default function OrganizationsTable({ organizations, total }: Props) {
 
     if (itemToAction) {
       startTransition(async () => {
-        await authClient.organization.delete({
-          organizationId: 'org-id' // required pathname)
-        })
+        await deleteOrganization(itemToAction.id, pathname)
+      })
 
-        toast.error(`Organization ${itemToAction.name} deleted`, {
-          description: '',
-          duration: 5000,
-          icon: <Trash2 className='size-4 text-red-500' />
-        })
+      toast.error(`Category ${itemToAction.name} deleted`, {
+        description: '',
+        duration: 5000,
+        icon: <Trash2 className='size-4 text-red-500' />
       })
     }
   }
