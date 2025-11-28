@@ -35,7 +35,6 @@ import { Organization } from '@/db/schema/authSchema'
 
 const formSchema = z.object({
   name: z.string().min(2).max(50)
-  // slug: z.string().min(2).max(50)
 })
 
 type Props = {
@@ -53,7 +52,6 @@ export function AddOrganizationDialog({ setOpen, open, organization }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: ''
-      // slug: ''
     }
   })
 
@@ -67,22 +65,26 @@ export function AddOrganizationDialog({ setOpen, open, organization }: Props) {
 
     try {
       setIsLoading(true)
-      await authClient.organization.create({
+      const res = await authClient.organization.create({
         name: values.name,
         slug
       })
-
-      toast.success('Organization created successfully')
+      if (res.error) {
+        toast.error(res.error.message || 'Failed to create organization')
+      } else {
+        await authClient.organization.setActive({
+          organizationId: res.data?.id
+        })
+        toast.success('Organization created successfully')
+      }
     } catch (error) {
       console.error(error)
-      toast.error('Failed to create organization')
     } finally {
-      router.refresh()
       setIsLoading(false)
       setOpen(false)
       form.reset()
 
-      router.push('/organization')
+      router.refresh()
     }
   }
 
