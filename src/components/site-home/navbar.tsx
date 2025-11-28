@@ -69,6 +69,15 @@ export function Navbar() {
                 </Button>
               </>
             )}
+            {session?.user.email === 'admin@wpaccpac.org' ? (
+              <>
+                <Button variant='outline' asChild size='lg'>
+                  <Link href='/protected'>Protected</Link>
+                </Button>
+              </>
+            ) : (
+              ''
+            )}
             <Button variant='outline' asChild size='lg'>
               <Link href='/settings'>Settings</Link>
             </Button>

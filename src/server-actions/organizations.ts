@@ -2,10 +2,10 @@
 
 import { eq, inArray } from 'drizzle-orm'
 
-import { member, organization } from '@/db/schema/index.ts'
 import { getCurrentUser } from './users'
 import { db } from '@/db'
 import { revalidatePath } from 'next/cache'
+import { member, organization } from '@/db/schema'
 
 export async function getOrganizations() {
   const { currentUser } = await getCurrentUser()

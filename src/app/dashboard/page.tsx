@@ -1,28 +1,16 @@
 import { auth } from '@/lib/auth'
 import { getOrganizations } from '@/server-actions/organizations'
 import { headers } from 'next/headers'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog'
-import Link from 'next/link'
-import { CreateOrganizationForm } from './_components/create-organization-form'
-import { getCurrentUserId } from '@/server-actions/users'
-import { redirect } from 'next/navigation'
 import { db } from '@/db'
 import { count } from 'drizzle-orm'
-import { organization } from '@/db/schema/index.ts'
+
 import { EmptyState } from '@/components/shared/empty-state'
 import { AddOrganizationButton } from './_components/add-organization-button'
 import { Suspense } from 'react'
 import { SkeletonArray } from '@/components/shared/skeleton'
 import { SkeletonCustomerCard } from '@/components/shared/skeleton-customer-card'
 import OrganizationsTable from './_components/organizations-table'
+import { organization } from '@/db/schema'
 
 export default async function DashboardPage() {
   const organizations = await getOrganizations()
