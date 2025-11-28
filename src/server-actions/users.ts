@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/db'
-import { user } from '@/db/schema'
+import { user } from '@/db/schema/index.ts'
 import { auth } from '@/lib/auth'
 import { eq, inArray, not } from 'drizzle-orm'
 import { headers } from 'next/headers'

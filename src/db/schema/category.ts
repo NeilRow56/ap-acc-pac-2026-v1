@@ -1,5 +1,5 @@
 import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
-import { user } from './auth-schema'
+import { user } from './authSchema'
 import { relations } from 'drizzle-orm'
 
 export const categories = pgTable('categories', {

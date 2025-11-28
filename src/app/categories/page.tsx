@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
-import { categories } from '@/db/schema'
+import { categories } from '@/db/schema/index.ts'
 import { count } from 'drizzle-orm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { SkeletonCustomerCard } from '@/components/shared/skeleton-customer-card'
@@ -15,7 +15,7 @@ import { AddCategoryButton } from './_components/add-category-button'
 import CategoriesTable from './_components/categories-table'
 
 export const metadata = {
-  title: 'Client Search'
+  title: 'Category Search'
 }
 
 export default async function Categories() {

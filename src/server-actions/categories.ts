@@ -2,7 +2,7 @@
 
 import { db } from '@/db'
 
-import { categories, Category } from '@/db/schema'
+import { categories, Category } from '@/db/schema/index.ts'
 import { auth } from '@/lib/auth'
 import { actionClient } from '@/lib/safe-action'
 import {

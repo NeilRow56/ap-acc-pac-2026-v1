@@ -1,7 +1,7 @@
 import { z } from 'zod/v4'
 
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import { organization } from '@/db/schema'
+import { organization } from '@/db/schema/index.ts'
 
 export const insertOrganizationSchema = createInsertSchema(organization, {
   name: schema =>

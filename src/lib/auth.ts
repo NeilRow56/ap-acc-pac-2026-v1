@@ -3,6 +3,7 @@ import ForgotPasswordEmail from '@/components/emails/reset-password'
 import VerifyEmail from '@/components/emails/verify-email'
 import { db } from '@/db'
 import { betterAuth } from 'better-auth'
+import { ac, roles } from '@/lib/permissions'
 import { organization } from 'better-auth/plugins'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin as adminPlugin } from 'better-auth/plugins/admin'
@@ -44,6 +45,12 @@ export const auth = betterAuth({
     deleteUser: {
       enabled: true
     },
+    additionalFields: {
+      role: {
+        type: ['user', 'admin', 'owner'],
+        input: false
+      }
+    },
     changeEmail: {
       enabled: true,
       async sendChangeEmailVerification({ user, newEmail, url }) {
@@ -66,7 +73,16 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg'
   }),
-  plugins: [organization(), nextCookies(), adminPlugin()]
+  plugins: [
+    organization(),
+    nextCookies(),
+    adminPlugin({
+      defaultRole: 'user',
+      adminRoles: ['admin, owner'],
+      ac,
+      roles
+    })
+  ]
 })
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'

@@ -2,19 +2,17 @@
 
 import { startTransition, useState } from 'react'
 
-import { DataTable } from '@/components/table-components/data-table'
-
 import { toast } from 'sonner'
 import { usePathname } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 
 import { EmptyState } from '@/components/shared/empty-state'
 
-import { deleteCategory } from '@/server-actions/categories'
 import ConfirmationDialog from '@/components/shared/confirmation-dialog'
 import { columns, Organization } from './columns'
 import { AddOrganizationButton } from './add-organization-button'
 import { deleteOrganization } from '@/server-actions/organizations'
+import { DataTable } from './data-table'
 
 type Props = {
   organizations: {
@@ -50,7 +48,7 @@ export default function OrganizationsTable({ organizations, total }: Props) {
         await deleteOrganization(itemToAction.id, pathname)
       })
 
-      toast.error(`Category ${itemToAction.name} deleted`, {
+      toast.error(`Organization ${itemToAction.name} deleted`, {
         description: '',
         duration: 5000,
         icon: <Trash2 className='size-4 text-red-500' />
@@ -62,8 +60,8 @@ export default function OrganizationsTable({ organizations, total }: Props) {
       <>
         <div className='mx-auto flex max-w-6xl flex-col gap-2'>
           <EmptyState
-            title='Categories'
-            description='You have no categories yet. Click on the button below to create your first category'
+            title='Organizations'
+            description='You have no organizations yet. Click on the button below to create your first organization'
           />
         </div>
 

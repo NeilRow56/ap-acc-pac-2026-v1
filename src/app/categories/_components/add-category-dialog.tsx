@@ -24,7 +24,6 @@ import {
   insertCategorySchemaType,
   insertCategorySchema
 } from '@/zod-schemas/categories'
-import { categories, Category } from '@/db/schema'
 
 import { useAction } from 'next-safe-action/hooks'
 
@@ -34,8 +33,9 @@ import { useRouter } from 'next/navigation'
 
 import { FormInput } from '@/components/form/form-base'
 import { LoadingSwap } from '@/components/shared/loading-swap'
-import { User } from '@/db/schema/auth-schema'
+import { User } from '@/db/schema/authSchema'
 import { saveCategoryAction } from '@/server-actions/categories'
+import { Category } from './columns'
 
 type Props = {
   open: boolean

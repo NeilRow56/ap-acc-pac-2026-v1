@@ -1,6 +1,6 @@
 import { z } from 'zod/v4'
 
-import { categories } from '@/db/schema'
+import { categories } from '@/db/schema/index.ts'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 
 export const insertCategorySchema = createInsertSchema(categories, {

@@ -31,7 +31,7 @@ import { useRouter } from 'next/navigation'
 import { FormInput } from '@/components/form/form-base'
 import { LoadingSwap } from '@/components/shared/loading-swap'
 import { authClient } from '@/lib/auth-client'
-import { Organization } from '@/db/schema/auth-schema'
+import { Organization } from '@/db/schema/authSchema'
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),

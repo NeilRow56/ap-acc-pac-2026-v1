@@ -25,6 +25,7 @@ import { FormInput, FormNumberInput } from '@/components/form/form-base'
 
 const profileUpdateSchema = z.object({
   name: z.string().min(1),
+  role: z.string().min(1),
   email: z.email().min(1)
 })
 
@@ -36,6 +37,7 @@ export function ProfileUpdateForm({
   user: {
     email: string
     name: string
+    role: string
   }
 }) {
   const router = useRouter()

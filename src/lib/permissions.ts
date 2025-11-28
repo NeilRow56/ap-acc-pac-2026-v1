@@ -9,11 +9,11 @@ const statements = {
 export const ac = createAccessControl(statements)
 
 export const roles = {
-  team: ac.newRole({
+  user: ac.newRole({
     project: ['read']
   }),
-  manager: ac.newRole({
-    project: ['read', 'update']
+  owner: ac.newRole({
+    project: ['create', 'read', 'update', 'delete']
   }),
 
   admin: ac.newRole({
