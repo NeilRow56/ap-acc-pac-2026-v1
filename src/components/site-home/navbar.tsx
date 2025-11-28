@@ -65,12 +65,15 @@ export function Navbar() {
             {hasAdminPermission && (
               <>
                 <Button variant='outline' asChild size='lg'>
-                  <Link href='/admin'>Admin</Link>
+                  <Link href='/organization'>Organization</Link>
                 </Button>
               </>
             )}
             {session?.user.email === 'admin@wpaccpac.org' ? (
               <>
+                <Button variant='outline' asChild size='lg'>
+                  <Link href='/admin'>Admin</Link>
+                </Button>
                 <Button variant='outline' asChild size='lg'>
                   <Link href='/protected'>Protected</Link>
                 </Button>

@@ -86,8 +86,8 @@ export function ProfileUpdateForm({
   return (
     <Card className='mx-auto w-full border-red-200 sm:max-w-md'>
       <CardHeader className='text-center'>
-        <CardTitle>Welcome to WpAccPac!</CardTitle>
-        <CardDescription>Create your account</CardDescription>
+        <CardTitle className='text-2xl'>Profile</CardTitle>
+        <CardDescription>Manage your account</CardDescription>
       </CardHeader>
       <CardContent>
         <form

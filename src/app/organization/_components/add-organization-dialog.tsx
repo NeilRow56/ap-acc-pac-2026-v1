@@ -34,8 +34,8 @@ import { authClient } from '@/lib/auth-client'
 import { Organization } from '@/db/schema/authSchema'
 
 const formSchema = z.object({
-  name: z.string().min(2).max(50),
-  slug: z.string().min(2).max(50)
+  name: z.string().min(2).max(50)
+  // slug: z.string().min(2).max(50)
 })
 
 type Props = {
@@ -52,17 +52,24 @@ export function AddOrganizationDialog({ setOpen, open, organization }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      slug: ''
+      name: ''
+      // slug: ''
     }
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const slug = values.name
+      .toLowerCase() // Convert to lowercase
+      .replace(/[^\w\s-]/g, '') // Remove non-word characters except spaces and hyphens
+      .trim() // Trim spaces
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .slice(0, 50) // Limit to 50 characters
+
     try {
       setIsLoading(true)
       await authClient.organization.create({
         name: values.name,
-        slug: values.slug
+        slug
       })
 
       toast.success('Organization created successfully')
@@ -70,8 +77,12 @@ export function AddOrganizationDialog({ setOpen, open, organization }: Props) {
       console.error(error)
       toast.error('Failed to create organization')
     } finally {
+      router.refresh()
       setIsLoading(false)
-      router.push('/dashboard')
+      setOpen(false)
+      form.reset()
+
+      router.push('/organization')
     }
   }
 
@@ -108,15 +119,6 @@ export function AddOrganizationDialog({ setOpen, open, organization }: Props) {
                       name='name'
                       label='Name'
                     />
-                    <FormInput
-                      control={form.control}
-                      name='slug'
-                      label='Slug'
-                    />
-                    <p className='text-muted-foreground/70 text-sm'>
-                      Create a slug by retyping the organization name in
-                      lowercase with no spaces. e.g. smithpartnership
-                    </p>
                   </FieldGroup>
                 </form>
               </CardContent>
