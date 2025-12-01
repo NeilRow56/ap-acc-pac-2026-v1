@@ -51,8 +51,8 @@ export function MembersTab() {
               </Badge>
             </TableCell>
             <TableCell>
-              {member.userId !== session?.user.id ||
-                (member.role !== 'owner' && (
+              {member.userId !== session?.user.id &&
+                member.role !== 'owner' && (
                   <BetterAuthActionButton
                     requireAreYouSure
                     variant='destructive'
@@ -61,7 +61,7 @@ export function MembersTab() {
                   >
                     Remove
                   </BetterAuthActionButton>
-                ))}
+                )}
             </TableCell>
           </TableRow>
         ))}

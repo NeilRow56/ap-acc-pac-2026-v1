@@ -3,7 +3,7 @@ import ForgotPasswordEmail from '@/components/emails/reset-password'
 import VerifyEmail from '@/components/emails/verify-email'
 import { db } from '@/db'
 import { betterAuth } from 'better-auth'
-import { ac, admin, owner, user } from '@/lib/permissions'
+import { ac, roles } from '@/lib/permissions'
 import { organization } from 'better-auth/plugins'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin as adminPlugin } from 'better-auth/plugins/admin'
@@ -52,7 +52,7 @@ export const auth = betterAuth({
 
     additionalFields: {
       role: {
-        type: ['user', 'admin', 'owner', 'member'],
+        type: ['user', 'admin', 'owner'],
         input: false
       },
       isSuperUser: { type: 'boolean', default: false }
@@ -107,11 +107,7 @@ export const auth = betterAuth({
       defaultRole: 'user',
       adminRoles: ['admin', 'owner'], // MUST BE THIS
       ac,
-      roles: {
-        admin,
-        owner,
-        user
-      }
+      roles
     })
   ],
   databaseHooks: {

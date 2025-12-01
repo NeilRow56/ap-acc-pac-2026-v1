@@ -27,12 +27,8 @@ export default async function AdminPage() {
 
   if (session == null) return redirect('/auth')
 
-  // if (session?.user.email !== 'admin@wpaccpac.org') redirect('/auth')
   if (session?.user.isSuperUser === false) redirect('/auth')
 
-  // console.log(JSON.stringify(session, null, 2))
-
-  console.log(session.organization)
   const users = await findAllUsers()
 
   const total = users.length

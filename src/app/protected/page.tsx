@@ -14,7 +14,7 @@ export default async function AdministratorPage() {
   if (!session) redirect('/auth')
   return (
     <div>
-      {session.user.email === 'admin@wpaccpac.org' ? (
+      {session.user.isSuperUser === true ? (
         <div className='container mx-auto max-w-5xl space-y-8 px-8 py-16'>
           <div className='space-y-4'>
             <ReturnButton href='/settings' label='Settings' />
