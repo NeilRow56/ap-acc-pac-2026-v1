@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
-import { categories } from '@/db/schema/index.ts'
+import { categories } from '@/db/schema'
 import { count } from 'drizzle-orm'
 import { EmptyState } from '@/components/shared/empty-state'
 import { SkeletonCustomerCard } from '@/components/shared/skeleton-customer-card'
