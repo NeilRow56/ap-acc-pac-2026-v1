@@ -8,3 +8,5 @@ export const APP_ADDRESS2 =
 export const APP_DESCRIPTION =
   process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
   'A modern application built with Next.js'
+
+export const EMAIL_SENDER_ADDRESS = process.env.EMAIL_SENDER_ADDRESS

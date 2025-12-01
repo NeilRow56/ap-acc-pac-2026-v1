@@ -3,12 +3,16 @@ import ForgotPasswordEmail from '@/components/emails/reset-password'
 import VerifyEmail from '@/components/emails/verify-email'
 import { db } from '@/db'
 import { betterAuth } from 'better-auth'
-import { ac, roles } from '@/lib/permissions'
+import { ac, admin, owner, user } from '@/lib/permissions'
 import { organization } from 'better-auth/plugins'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin as adminPlugin } from 'better-auth/plugins/admin'
 import { nextCookies } from 'better-auth/next-js'
+
 import { Resend } from 'resend'
+import sendOrganizationInviteEmail from '@/components/emails/organization-invite-email'
+import { desc, eq } from 'drizzle-orm'
+import { member } from '@/db/schema'
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
@@ -45,12 +49,15 @@ export const auth = betterAuth({
     deleteUser: {
       enabled: true
     },
+
     additionalFields: {
       role: {
-        type: ['user', 'admin', 'owner'],
+        type: ['user', 'admin', 'owner', 'member'],
         input: false
-      }
+      },
+      isSuperUser: { type: 'boolean', default: false }
     },
+
     changeEmail: {
       enabled: true,
       async sendChangeEmailVerification({ user, newEmail, url }) {
@@ -63,6 +70,7 @@ export const auth = betterAuth({
       }
     }
   },
+
   session: {
     expiresIn: 30 * 24 * 60 * 60 * 2, // 60 days - default is 7 days
     cookieCache: {
@@ -72,17 +80,60 @@ export const auth = betterAuth({
   },
   database: drizzleAdapter(db, {
     provider: 'pg'
+
+    // session, user and verification table names already match the database names
   }),
+
   plugins: [
-    organization(),
+    organization({
+      sendInvitationEmail: async data => {
+        const inviteLink = `${process.env.BETTER_AUTH_URL}/organization/invites/${data.id}`
+        await resend.emails.send({
+          from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
+          to: data.email,
+          subject: "You've been invited to join our organization",
+          react: sendOrganizationInviteEmail({
+            email: data.email,
+            invitedByUsername: data.inviter.user.name,
+            invitedByEmail: data.inviter.user.email,
+            teamName: data.organization.name,
+            inviteLink
+          })
+        })
+      }
+    }),
     nextCookies(),
     adminPlugin({
       defaultRole: 'user',
-      adminRoles: ['admin, owner'],
+      adminRoles: ['admin', 'owner'], // MUST BE THIS
       ac,
-      roles
+      roles: {
+        admin,
+        owner,
+        user
+      }
     })
-  ]
+  ],
+  databaseHooks: {
+    session: {
+      create: {
+        before: async userSession => {
+          const membership = await db.query.member.findFirst({
+            where: eq(member.userId, userSession.userId),
+            orderBy: desc(member.createdAt),
+            columns: { organizationId: true }
+          })
+
+          return {
+            data: {
+              ...userSession,
+              activeOrganizationId: membership?.organizationId
+            }
+          }
+        }
+      }
+    }
+  }
 })
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'

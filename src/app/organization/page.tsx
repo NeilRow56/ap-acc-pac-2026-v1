@@ -62,7 +62,7 @@ export default async function OrganizationPage() {
         </div>
         <div className='mb-8 flex items-center gap-2'>
           <OrganizationSelect />
-          <AddOrganizationButton />
+          {session.user.role !== 'user' && <AddOrganizationButton />}
         </div>
         <Suspense
           fallback={

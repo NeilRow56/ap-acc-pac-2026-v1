@@ -42,7 +42,7 @@ export async function UserTable() {
               <UserRoleSelect userId={user.id} role={user.role as Role} />
             </TableCell>
             <TableCell className='space-x-2 text-right'>
-              {user.role === 'admin' ? (
+              {user.email !== 'admin@wpaccpac.org' ? (
                 <DeleteUserButton userId={user.id} />
               ) : (
                 <Button

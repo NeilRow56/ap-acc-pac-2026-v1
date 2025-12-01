@@ -100,10 +100,10 @@ const ForgotPasswordEmail = (props: ForgotPasswordEmailProps) => {
               <Text className='m-0 text-[14px] leading-5 text-gray-600'>
                 Need help? Contact our support team at{' '}
                 <Link
-                  href='mailto:support@company.com'
+                  href='mailto:admin@wpaccpac.org'
                   className='text-blue-600'
                 >
-                  support@company.com
+                  admin@wpaccpac.org
                 </Link>
               </Text>
             </Section>
@@ -121,7 +121,7 @@ const ForgotPasswordEmail = (props: ForgotPasswordEmailProps) => {
                 {APP_ADDRESS2}
               </Text>
               <Text className='m-0 mt-2 text-center text-[12px] leading-4 text-gray-400'>
-                | © 2026 {APP_NAME}. All rights reserved.
+                | © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
               </Text>
             </Section>
           </Container>

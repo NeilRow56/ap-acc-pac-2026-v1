@@ -21,7 +21,9 @@ import { useRouter } from 'next/navigation'
 
 import { LoadingSwap } from '@/components/shared/loading-swap'
 import { authClient } from '@/lib/auth-client'
-import { FormInput, FormNumberInput } from '@/components/form/form-base'
+import { FormInput } from '@/components/form/form-base'
+import { UserRoleSelect } from '@/app/protected/_components/user-role-select'
+import { Role } from '@/db/schema'
 
 const profileUpdateSchema = z.object({
   name: z.string().min(1),
@@ -35,12 +37,14 @@ export function ProfileUpdateForm({
   user
 }: {
   user: {
+    id: string
     email: string
     name: string
     role: string
   }
 }) {
   const router = useRouter()
+
   const form = useForm<ProfileUpdateForm>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: user
@@ -89,6 +93,9 @@ export function ProfileUpdateForm({
         <CardTitle className='text-2xl'>Profile</CardTitle>
         <CardDescription>Manage your account</CardDescription>
       </CardHeader>
+      {/* <CardContent>
+        <UserRoleSelect userId={user.id} role={user.role as Role} />
+      </CardContent> */}
       <CardContent>
         <form
           id='profile-update-form'

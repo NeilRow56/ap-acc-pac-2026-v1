@@ -19,6 +19,7 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').default(false).notNull(),
   role: role('role').default('user').notNull(),
+  isSuperUser: boolean('is_super_user').default(false),
   image: text('image'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
@@ -123,6 +124,10 @@ export const member = pgTable(
     index('member_userId_idx').on(table.userId)
   ]
 )
+
+export type Member = typeof member.$inferSelect & {
+  user: typeof user.$inferSelect
+}
 
 export const invitation = pgTable(
   'invitation',

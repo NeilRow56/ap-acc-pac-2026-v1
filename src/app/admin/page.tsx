@@ -20,21 +20,22 @@ import { redirect } from 'next/navigation'
 
 import { auth } from '@/lib/auth'
 import { UserRow } from './_components/user-row'
+import { findAllUsers } from '@/server-actions/users'
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (session == null) return redirect('/auth')
-  const hasAccess = await auth.api.userHasPermission({
-    headers: await headers(),
-    body: { permission: { user: ['list'] } }
-  })
-  if (!hasAccess.success) return redirect('/')
 
-  const users = await auth.api.listUsers({
-    headers: await headers(),
-    query: { limit: 100, sortBy: 'createdAt', sortDirection: 'desc' }
-  })
+  // if (session?.user.email !== 'admin@wpaccpac.org') redirect('/auth')
+  if (session?.user.isSuperUser === false) redirect('/auth')
+
+  // console.log(JSON.stringify(session, null, 2))
+
+  console.log(session.organization)
+  const users = await findAllUsers()
+
+  const total = users.length
 
   return (
     <div className='container mx-auto my-6 px-4'>
@@ -47,7 +48,7 @@ export default async function AdminPage() {
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Users className='h-5 w-5' />
-            Users ({users.total})
+            Users ({total})
           </CardTitle>
           <CardDescription>
             Manage user accounts, roles, and permissions
@@ -65,7 +66,7 @@ export default async function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.users.map(user => (
+                {users.map(user => (
                   <UserRow key={user.id} user={user} selfId={session.user.id} />
                 ))}
               </TableBody>

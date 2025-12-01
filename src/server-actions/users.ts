@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/db'
-import { user } from '@/db/schema'
+import { member, user } from '@/db/schema'
 
 import { auth } from '@/lib/auth'
 import { asc, eq, inArray, not } from 'drizzle-orm'
@@ -15,7 +15,8 @@ export const signUp = async (email: string, password: string, name: string) => {
       body: {
         name,
         email,
-        password
+        password,
+        isSuperUser: false
       }
     })
 
@@ -139,4 +140,26 @@ export async function deleteUser(id: string) {
   }
 
   revalidatePath('/protected')
+}
+
+export const getUsers = async (organizationId: string) => {
+  try {
+    const members = await db.query.member.findMany({
+      where: eq(member.organizationId, organizationId)
+    })
+
+    const users = await db.query.user.findMany({
+      where: not(
+        inArray(
+          user.id,
+          members.map(m => m.userId)
+        )
+      )
+    })
+
+    return users
+  } catch (error) {
+    console.error(error)
+    return []
+  }
 }
