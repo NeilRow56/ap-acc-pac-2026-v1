@@ -2,6 +2,9 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   /* config options here */
+  turbopack: {
+    root: '/Users/neilrowland/code/2026/wpaccpac_2026_v1'
+  },
   reactCompiler: true,
   images: {
     remotePatterns: [
