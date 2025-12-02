@@ -84,6 +84,8 @@ export const auth = betterAuth({
     // session, user and verification table names already match the database names
   }),
 
+  trustedOrigins: [process.env.VERCEL_URL!],
+
   plugins: [
     organization({
       sendInvitationEmail: async data => {
