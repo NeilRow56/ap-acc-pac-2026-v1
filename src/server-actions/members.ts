@@ -2,8 +2,8 @@
 
 import { eq } from 'drizzle-orm'
 
-import { member, type Role } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { member } from '@/db/schema'
+
 import { isAdmin } from './permissions'
 import { db } from '@/db'
 

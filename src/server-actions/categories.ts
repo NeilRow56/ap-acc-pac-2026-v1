@@ -17,7 +17,6 @@ import { revalidatePath } from 'next/cache'
 
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { cache } from 'react'
 
 export async function getCategoriesByUserId(userId: string) {
   const CategoriesByUserId = await db

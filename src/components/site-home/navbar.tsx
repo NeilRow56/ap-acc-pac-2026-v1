@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { APP_NAME, EMAIL_SENDER_ADDRESS } from '@/lib/constants'
+import { APP_NAME } from '@/lib/constants'
 
 import { ModeToggle } from '../mode-toggle'
 import { BookOpen, CreditCard, Zap } from 'lucide-react'
@@ -21,8 +21,8 @@ const navItems = [
 ]
 
 export function Navbar() {
-  const [hasAdminPermission, setHasAdminPermission] = useState(false)
-  const { data: session, isPending } = authClient.useSession()
+  const [, setHasAdminPermission] = useState(false)
+  const { data: session, isPending: loading } = authClient.useSession()
   const user = session?.user
 
   useEffect(() => {
@@ -32,6 +32,10 @@ export function Navbar() {
         setHasAdminPermission(data?.success ?? false)
       })
   }, [])
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <header className='bg-background/95 backdrop-blur-[backdrop-filter]:bg-background sticky top-0 z-50 w-full border-b'>

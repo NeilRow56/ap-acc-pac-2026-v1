@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,11 +28,7 @@ const formSchema = z.object({
   email: z.email()
 })
 
-interface ForgotPasswordFormProps {
-  onSuccess?: () => void
-}
-
-export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm() {
   const [isPending, setPending] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({

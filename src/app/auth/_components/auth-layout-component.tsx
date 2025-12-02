@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Playwrite_CA } from 'next/font/google'
 import { LoginForm } from './login-form'
 import { RegisterForm } from './register-form'
 

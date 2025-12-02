@@ -1,4 +1,4 @@
-import React, { cache, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -78,9 +78,8 @@ function AddCategoryDialog({ setOpen, open, category, user }: Props) {
 
   const {
     execute: executeSave,
-    // result: saveResult,
-    isPending: isSaving,
-    reset: resetSaveAction
+
+    isPending: isSaving
   } = useAction(saveCategoryAction, {
     onSuccess({ data }) {
       if (data) {

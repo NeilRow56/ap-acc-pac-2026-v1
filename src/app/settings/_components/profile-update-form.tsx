@@ -22,8 +22,6 @@ import { useRouter } from 'next/navigation'
 import { LoadingSwap } from '@/components/shared/loading-swap'
 import { authClient } from '@/lib/auth-client'
 import { FormInput } from '@/components/form/form-base'
-import { UserRoleSelect } from '@/app/protected/_components/user-role-select'
-import { Role } from '@/db/schema'
 
 const profileUpdateSchema = z.object({
   name: z.string().min(1),

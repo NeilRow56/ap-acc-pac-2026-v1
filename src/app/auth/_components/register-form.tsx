@@ -54,11 +54,7 @@ const registerSchema = z
   })
 type RegisterSchemaType = z.infer<typeof registerSchema>
 
-interface RegisterFormProps {
-  onSuccess?: () => void
-}
-
-export function RegisterForm({ onSuccess }: RegisterFormProps) {
+export function RegisterForm() {
   const router = useRouter()
 
   const form = useForm<z.infer<typeof registerSchema>>({

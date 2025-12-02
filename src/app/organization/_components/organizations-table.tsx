@@ -63,6 +63,7 @@ export default function OrganizationsTable({ organizations, total }: Props) {
             title='Organizations'
             description='You have no organizations yet. Click on the button below to create your first organization'
           />
+          <div className='hidden'>{open}</div>
         </div>
 
         <div className='- mt-12 flex w-full justify-center'>

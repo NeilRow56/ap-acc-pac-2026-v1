@@ -1,8 +1,8 @@
 import { auth } from '@/lib/auth'
 import { getOrganizations } from '@/server-actions/organizations'
 import { headers } from 'next/headers'
-import { db } from '@/db'
-import { count } from 'drizzle-orm'
+// import { db } from '@/db'
+// import { count } from 'drizzle-orm'
 
 import { EmptyState } from '@/components/shared/empty-state'
 import { AddOrganizationButton } from './_components/add-organization-button'
@@ -10,7 +10,7 @@ import { Suspense } from 'react'
 import { SkeletonArray } from '@/components/shared/skeleton'
 import { SkeletonCustomerCard } from '@/components/shared/skeleton-customer-card'
 
-import { organization } from '@/db/schema'
+// import { organization } from '@/db/schema'
 import { redirect } from 'next/navigation'
 import { OrganizationTabs } from './_components/organization-tabs'
 import Link from 'next/link'
@@ -24,12 +24,12 @@ export default async function OrganizationPage() {
   })
   if (session == null) return redirect('/auth')
 
-  type Result = { count: number }
-  const dbCount = await db.select({ count: count() }).from(organization)
+  // type Result = { count: number }
+  // const dbCount = await db.select({ count: count() }).from(organization)
 
-  const arr: Result[] = dbCount
+  // const arr: Result[] = dbCount
 
-  const total: number = arr.reduce((sum, result) => sum + result.count, 0)
+  // const total: number = arr.reduce((sum, result) => sum + result.count, 0)
 
   if (organizations.length === 0) {
     return (

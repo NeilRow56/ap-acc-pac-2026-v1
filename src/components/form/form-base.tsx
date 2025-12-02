@@ -127,7 +127,7 @@ export const FormInput: FormControlFunc = props => {
 export const FormNumberInput: FormControlFunc = props => {
   return (
     <FormBase {...props}>
-      {({ onChange, value, ...field }) => (
+      {({ onChange, value }) => (
         <Input
           {...props}
           onChange={e => {

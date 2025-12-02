@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card'
-import { BarChart3, Divide, PlayCircle, Webhook, Workflow } from 'lucide-react'
+import { BarChart3, PlayCircle, Webhook, Workflow } from 'lucide-react'
 
 const steps = [
   {

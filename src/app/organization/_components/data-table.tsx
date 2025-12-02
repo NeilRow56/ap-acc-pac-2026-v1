@@ -33,7 +33,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { DataTablePagination } from '@/components/table-components/data-table-pagination'
-import { APP_NAME } from '@/lib/constants'
 
 declare module '@tanstack/react-table' {
   interface TableMeta<TData extends RowData> {
@@ -63,6 +62,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

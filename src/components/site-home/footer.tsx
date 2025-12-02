@@ -1,4 +1,4 @@
-import { Book, FileText, MessageCircle, Shield, UserCheck } from 'lucide-react'
+import { Book, Shield, UserCheck } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { connection } from 'next/server'
@@ -19,7 +19,7 @@ export function Footer() {
             </div>
             <p className='text-muted-foreground leading relaxed mt-[50px] mb-6 text-sm'>
               The next-generation of accountants workflow automation. Create
-              online "working paers" effortlessly.
+              online working papers effortlessly.
             </p>
           </div>
           {/* Resources */}

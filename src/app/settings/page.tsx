@@ -1,8 +1,8 @@
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { auth } from '@/lib/auth'
-import { ArrowLeftIcon, Key, Trash2, User } from 'lucide-react'
+import { ArrowLeftIcon, Key, User } from 'lucide-react'
 import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation'
 
 import { ProfileUpdateForm } from './_components/profile-update-form'
 import { SessionManagement } from './_components/session-management'
-import { AccountDeletion } from './_components/account-deletion'
+
 import { LoadingSuspense } from '@/components/shared/loading-suspense'
 
 export default async function ProfileSettingsPage() {
