@@ -86,6 +86,10 @@ export const auth = betterAuth({
 
   trustedOrigins: [process.env.VERCEL_URL!],
 
+  secret: process.env.BETTER_AUTH_SECRET!,
+  url: process.env.BETTER_AUTH_URL, // important
+  allowedOrigins: process.env.BETTER_AUTH_ALLOWED_ORIGINS?.split(','),
+
   plugins: [
     organization({
       sendInvitationEmail: async data => {
