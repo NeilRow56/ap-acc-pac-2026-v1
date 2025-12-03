@@ -52,11 +52,11 @@ function getRequestOrigin(req: Request): string | null {
   return host ? `https://${host}` : null
 }
 
-// --------- Hardened allowedOriginsFn (production, preview, localhost) ---------
+// --------- Hardened allowedOriginsFn ---------
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
   const detected = getRequestOrigin(req) || origin
 
-  if (!detected || detected === 'null') return true // Safari/Chrome quirks
+  if (!detected || detected === 'null') return true
 
   const cleanOrigin = normalizeOrigin(detected)
 
@@ -71,7 +71,7 @@ const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
   return false
 }
 
-// ----------- Better-Auth Root Config -----------
+// ----------- Better-Auth Config -----------
 export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
@@ -128,8 +128,8 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60,
-      secure: true, // required for HTTPS / Vercel
-      sameSite: 'none' // allow cross-origin preview deploys
+      secure: true, // Required for HTTPS
+      sameSite: 'none' // Allow cross-origin previews
     }
   },
 
