@@ -58,14 +58,19 @@ function getRequestOrigin(req: Request): string | null {
 // --------- Hardened allowedOriginsFn (Option 2) ---------
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
   const detected = getRequestOrigin(req)
+  console.log(
+    '[BetterAuth] Origin header:',
+    origin,
+    'Detected origin:',
+    detected
+  )
 
-  // Allow if origin is null (Safari/Chrome quirks) or missing
   if (!detected || detected === 'null') return true
 
   const cleanOrigin = normalizeOrigin(detected)
   if (ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin)) return true
 
-  console.warn(`[better-auth] Blocked origin: ${cleanOrigin}`)
+  console.warn(`[BetterAuth] Blocked origin: ${cleanOrigin}`)
   return false
 }
 
