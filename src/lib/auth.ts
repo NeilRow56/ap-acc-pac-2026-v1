@@ -20,11 +20,11 @@ const resend = new Resend(process.env.RESEND_API_KEY as string)
 
 // ----------- Allowed Origins & Helpers -----------
 const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''),
-  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''),
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''), // production
+  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''), // production
   process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-    : undefined,
+    : undefined, // preview deploy
   'http://localhost:3000',
   'http://127.0.0.1:3000'
 ].filter(Boolean) as string[]
@@ -55,14 +55,15 @@ function getRequestOrigin(req: Request): string | null {
   return host ? `https://${host}` : null
 }
 
+// --------- Hardened allowedOriginsFn (Option 2) ---------
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
-  if (!origin || origin === 'null') return true
+  const detected = getRequestOrigin(req)
 
-  const cleanOrigin = normalizeOrigin(getRequestOrigin(req) || origin)
+  // Allow if origin is null (Safari/Chrome quirks) or missing
+  if (!detected || detected === 'null') return true
 
-  for (const allowed of ALLOWED_ORIGINS) {
-    if (normalizeOrigin(allowed) === cleanOrigin) return true
-  }
+  const cleanOrigin = normalizeOrigin(detected)
+  if (ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin)) return true
 
   console.warn(`[better-auth] Blocked origin: ${cleanOrigin}`)
   return false
