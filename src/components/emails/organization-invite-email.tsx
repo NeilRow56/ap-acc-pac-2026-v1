@@ -43,7 +43,7 @@ const sendOrganizationInviteEmail = (
               </Section>
 
               {/* Main Content */}
-              <Section className='mb-8 ml-12'>
+              <Section className='mb-8 ml-9'>
                 <Text className='text-4 m-0 mb-4 text-gray-700'>Hi there,</Text>
                 <Text className='text-4 m-0 mb-4 text-gray-700'>
                   <strong>{props.invitedByUsername}</strong> (
@@ -68,7 +68,7 @@ const sendOrganizationInviteEmail = (
               </Section>
 
               {/* Alternative Link */}
-              <Section className='mb-8 ml-12'>
+              <Section className='mb-8 ml-6'>
                 <Text className='m-0 mb-2 text-[14px] text-gray-600'>
                   If the button above doesn&apos;t work, you can also copy and
                   paste this link into your browser:
@@ -84,7 +84,7 @@ const sendOrganizationInviteEmail = (
               </Section>
 
               {/* Additional Info */}
-              <Section className='mb-6 ml-12 border-t border-gray-200 pt-6'>
+              <Section className='mb-6 ml-6 border-t border-gray-200 pt-6'>
                 <Text className='m-0 mb-2 text-[14px] text-gray-600'>
                   <strong>Organization:</strong> {props.teamName}
                 </Text>
