@@ -101,9 +101,13 @@ export const auth = betterAuth({
 
   user: {
     deleteUser: { enabled: true },
+
     additionalFields: {
       role: { type: ['user', 'admin', 'owner'], input: false },
-      isSuperUser: { type: 'boolean', input: false }
+      isSuperUser: {
+        type: 'boolean' as const,
+        default: false as boolean
+      }
     },
     changeEmail: {
       enabled: true,
