@@ -52,19 +52,18 @@ function getRequestOrigin(req: Request): string | null {
   return host ? `https://${host}` : null
 }
 
-// --------- Hardened allowedOriginsFn (supports production, localhost, and all Vercel previews) ---------
+// --------- Hardened allowedOriginsFn ---------
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
   const detected = getRequestOrigin(req) || origin
 
-  // Allow null origins (Safari/Chrome quirks)
-  if (!detected || detected === 'null') return true
+  if (!detected || detected === 'null') return true // Safari/Chrome quirks
 
   const cleanOrigin = normalizeOrigin(detected)
 
-  // Allow production, localhost, or any Vercel preview deploys
+  // Allow production, localhost, or any Vercel preview deploy
   if (
-    ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin) || // prod & localhost
-    cleanOrigin.endsWith('.vercel.app') // preview deploys
+    ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin) ||
+    cleanOrigin.endsWith('.vercel.app')
   )
     return true
 
