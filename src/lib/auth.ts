@@ -18,62 +18,58 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
-// --- Origin Helpers ---
-function normalize(origin: string) {
-  return origin.replace(/\/$/, '').toLowerCase()
+/** ----------------- Helpers ----------------- */
+function normalizeOrigin(origin: string) {
+  try {
+    return new URL(origin).origin.replace(/\/$/, '').toLowerCase()
+  } catch {
+    return origin.replace(/\/$/, '').toLowerCase()
+  }
 }
 
-function detectOrigin(req: Request): string | null {
-  const o = req.headers.get('origin')
-  if (o && o !== 'null') return normalize(o)
-
-  const r = req.headers.get('referer')
-  if (r) {
+function getRequestOrigin(req: Request): string | null {
+  const origin = req.headers.get('origin')
+  const referer = req.headers.get('referer')
+  if (origin && origin !== 'null') return origin.replace(/\/$/, '')
+  if (referer) {
     try {
-      return normalize(new URL(r).origin)
-    } catch {}
+      const url = new URL(referer)
+      return url.origin.replace(/\/$/, '')
+    } catch {
+      return null
+    }
   }
-
   const host = req.headers.get('host')
   return host ? `https://${host}` : null
 }
 
-// --- Allowed Origins (final) ---
-const STATIC_ALLOWED = [
+/** ----------------- Allowed Origins ----------------- */
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''),
+  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''),
   'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  process.env.NEXT_PUBLIC_APP_URL,
-  process.env.BETTER_AUTH_URL
-]
-  .filter(Boolean)
-  .map(o => normalize(o!))
+  'http://127.0.0.1:3000'
+].filter(Boolean) as string[]
 
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
-  const detected = detectOrigin(req) || origin
-  if (!detected) return true
+  const detected = getRequestOrigin(req) || origin
+  if (!detected || detected === 'null') return true
 
-  const n = normalize(detected)
+  const normalized = normalizeOrigin(detected)
 
-  // allow localhost
-  if (n.startsWith('http://localhost')) return true
+  // allow exact matches
+  if (ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === normalized)) return true
 
-  // allow exact env URLs
-  if (STATIC_ALLOWED.includes(n)) return true
+  // allow all vercel preview domains
+  if (normalized.includes('.vercel.app')) return true
 
-  // allow all Vercel previews and subdomains
-  if (n.endsWith('.vercel.app') || n.includes('.vercel.app')) return true
-
-  console.warn('[better-auth] Blocked origin:', n)
+  console.warn('[better-auth] Blocked origin:', normalized)
   return false
 }
 
-// =======================
-//        AUTH
-// =======================
+/** ----------------- Better-Auth ----------------- */
 export const auth = betterAuth({
   emailVerification: {
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       await resend.emails.send({
         from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
@@ -81,12 +77,13 @@ export const auth = betterAuth({
         subject: 'Verify your email',
         react: VerifyEmail({ username: user.name, verifyUrl: url })
       })
-    }
+    },
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true
   },
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       await resend.emails.send({
         from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
@@ -98,23 +95,19 @@ export const auth = betterAuth({
           userEmail: user.email
         })
       })
-    }
+    },
+    requireEmailVerification: true
   },
 
   user: {
     deleteUser: { enabled: true },
-
     additionalFields: {
       role: { type: ['user', 'admin', 'owner'], input: false },
-      isSuperUser: {
-        type: 'boolean' as const,
-        default: false as boolean
-      }
+      isSuperUser: { type: 'boolean', input: false }
     },
-
     changeEmail: {
       enabled: true,
-      sendChangeEmailVerification: async ({ user, newEmail, url }) => {
+      async sendChangeEmailVerification({ user, newEmail, url }) {
         await resend.emails.send({
           from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
           to: user.email,
@@ -129,25 +122,21 @@ export const auth = betterAuth({
     expiresIn: 60 * 24 * 60 * 60, // 60 days
     refresh: {
       enabled: true,
-      interval: 5 * 60 // refresh every 5 minutes
+      interval: 5 * 60 // 5 minutes
     },
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60,
-      sameSite: 'lax',
+      sameSite: 'none', // cross-origin previews
       secure: true
     }
   },
 
   database: drizzleAdapter(db, { provider: 'pg' }),
-
-  // ❗ Required for Vercel previews
   trustHost: true,
   allowedOrigins: allowedOriginsFn,
-
-  url: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET!,
-
+  url: process.env.BETTER_AUTH_URL,
   trustedOrigins: [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
@@ -159,12 +148,11 @@ export const auth = betterAuth({
   plugins: [
     organization({
       sendInvitationEmail: async data => {
-        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/organization/invites/${data.id}`
-
+        const inviteLink = `${process.env.NEXT_PULIC_APP_URL}/organization/invites/${data.id}`
         await resend.emails.send({
           from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
           to: data.email,
-          subject: "You've been invited",
+          subject: "You've been invited to join our organization",
           react: sendOrganizationInviteEmail({
             email: data.email,
             invitedByUsername: data.inviter.user.name,
@@ -175,9 +163,7 @@ export const auth = betterAuth({
         })
       }
     }),
-
     nextCookies(),
-
     adminPlugin({
       defaultRole: 'user',
       adminRoles: ['admin', 'owner'],
@@ -199,7 +185,7 @@ export const auth = betterAuth({
           return {
             data: {
               ...userSession,
-              activeOrganizationId: membership?.organizationId ?? null
+              activeOrganizationId: membership?.organizationId
             }
           }
         }
@@ -208,4 +194,5 @@ export const auth = betterAuth({
   }
 })
 
+export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'
 export type Session = typeof auth.$Infer.Session
