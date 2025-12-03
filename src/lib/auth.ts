@@ -1,25 +1,67 @@
 import VerifyChangeEmail from '@/components/emails/change-email'
 import ForgotPasswordEmail from '@/components/emails/reset-password'
 import VerifyEmail from '@/components/emails/verify-email'
+import sendOrganizationInviteEmail from '@/components/emails/organization-invite-email'
+
 import { db } from '@/db'
+import { member } from '@/db/schema'
+import { desc, eq } from 'drizzle-orm'
+
 import { betterAuth } from 'better-auth'
-import { ac, roles } from '@/lib/permissions'
-import { organization } from 'better-auth/plugins'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { organization } from 'better-auth/plugins'
 import { admin as adminPlugin } from 'better-auth/plugins/admin'
 import { nextCookies } from 'better-auth/next-js'
 
+import { ac, roles } from '@/lib/permissions'
 import { Resend } from 'resend'
-import sendOrganizationInviteEmail from '@/components/emails/organization-invite-email'
-import { desc, eq } from 'drizzle-orm'
-import { member } from '@/db/schema'
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
+// -------- iOS Origin Fix Helper ---------
+function getRequestOrigin(req: Request): string | null {
+  const origin = req.headers.get('origin')
+  const referer = req.headers.get('referer')
+
+  if (origin && origin !== 'null') return origin.replace(/\/$/, '')
+
+  if (referer) {
+    try {
+      const url = new URL(referer)
+      return url.origin.replace(/\/$/, '')
+    } catch {
+      return null
+    }
+  }
+
+  const host = req.headers.get('host')
+  return host ? `https://${host}` : null
+}
+
+// Build allowed origin list from env (prod, previews, dev)
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''),
+  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''),
+  process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`
+    : undefined,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+].filter(Boolean) as string[]
+
+function normalizeOrigin(origin: string) {
+  try {
+    return new URL(origin).origin.replace(/\/$/, '').toLowerCase()
+  } catch {
+    return origin.replace(/\/$/, '').toLowerCase()
+  }
+}
+
+// --------- Better-Auth Root Config ---------
 export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
-      resend.emails.send({
+      await resend.emails.send({
         from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
         to: user.email,
         subject: 'Verify your email',
@@ -29,10 +71,11 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     autoSignInAfterVerification: true
   },
+
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
-      resend.emails.send({
+      await resend.emails.send({
         from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
         to: user.email,
         subject: 'Reset your password',
@@ -45,11 +88,9 @@ export const auth = betterAuth({
     },
     requireEmailVerification: true
   },
-  user: {
-    deleteUser: {
-      enabled: true
-    },
 
+  user: {
+    deleteUser: { enabled: true },
     additionalFields: {
       role: {
         type: ['user', 'admin', 'owner'],
@@ -61,7 +102,7 @@ export const auth = betterAuth({
     changeEmail: {
       enabled: true,
       async sendChangeEmailVerification({ user, newEmail, url }) {
-        resend.emails.send({
+        await resend.emails.send({
           from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
           to: user.email,
           subject: 'Reset your email',
@@ -72,23 +113,39 @@ export const auth = betterAuth({
   },
 
   session: {
-    expiresIn: 30 * 24 * 60 * 60 * 2, // 60 days - default is 7 days
+    expiresIn: 30 * 24 * 60 * 60 * 2, // 60 days
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60
     }
   },
+
   database: drizzleAdapter(db, {
     provider: 'pg'
-
-    // session, user and verification table names already match the database names
   }),
 
-  trustedOrigins: [process.env.VERCEL_URL!],
+  trustHost: true,
+
+  allowedOrigins: (origin: string | null | undefined, req: Request) => {
+    const detected = getRequestOrigin(req)
+    if (!detected) return true
+
+    const normalized = normalizeOrigin(detected)
+    for (const allowed of ALLOWED_ORIGINS) {
+      if (normalizeOrigin(allowed) === normalized) return true
+    }
+
+    const host = req.headers.get('host')
+    if (host && normalized.endsWith(host.toLowerCase())) return true
+
+    console.warn(`[better-auth] Blocked origin: ${normalized}`)
+    return false
+  },
 
   secret: process.env.BETTER_AUTH_SECRET!,
-  url: process.env.BETTER_AUTH_URL, // important
-  allowedOrigins: process.env.BETTER_AUTH_ALLOWED_ORIGINS?.split(','),
+  url: process.env.BETTER_AUTH_URL,
+
+  trustedOrigins: ['http://localhost:3000', process.env.BETTER_AUTH_URL!],
 
   plugins: [
     organization({
@@ -111,11 +168,12 @@ export const auth = betterAuth({
     nextCookies(),
     adminPlugin({
       defaultRole: 'user',
-      adminRoles: ['admin', 'owner'], // MUST BE THIS
+      adminRoles: ['admin', 'owner'],
       ac,
       roles
     })
   ],
+
   databaseHooks: {
     session: {
       create: {
@@ -139,4 +197,5 @@ export const auth = betterAuth({
 })
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'
+
 export type Session = typeof auth.$Infer.Session
