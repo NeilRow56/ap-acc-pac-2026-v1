@@ -18,14 +18,7 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
-// ----------- Allowed Origins & Helpers -----------
-const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''), // production
-  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''), // production
-  'http://localhost:3000',
-  'http://127.0.0.1:3000'
-].filter(Boolean) as string[]
-
+// ----------------- Helpers -----------------
 function normalizeOrigin(origin: string) {
   try {
     return new URL(origin).origin.replace(/\/$/, '').toLowerCase()
@@ -37,7 +30,6 @@ function normalizeOrigin(origin: string) {
 function getRequestOrigin(req: Request): string | null {
   const origin = req.headers.get('origin')
   const referer = req.headers.get('referer')
-
   if (origin && origin !== 'null') return origin.replace(/\/$/, '')
   if (referer) {
     try {
@@ -47,31 +39,35 @@ function getRequestOrigin(req: Request): string | null {
       return null
     }
   }
-
   const host = req.headers.get('host')
   return host ? `https://${host}` : null
 }
 
-// --------- Hardened allowedOriginsFn ---------
+// ----------------- Allowed Origins -----------------
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''),
+  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''),
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+].filter(Boolean) as string[]
+
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
   const detected = getRequestOrigin(req) || origin
-
   if (!detected || detected === 'null') return true
 
-  const cleanOrigin = normalizeOrigin(detected)
+  const normalized = normalizeOrigin(detected)
 
-  // Allow production, localhost, or any Vercel preview
   if (
-    ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin) ||
-    cleanOrigin.endsWith('.vercel.app')
+    ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === normalized) ||
+    normalized.endsWith('.vercel.app')
   )
     return true
 
-  console.warn(`[better-auth] Blocked origin: ${cleanOrigin}`)
+  console.warn(`[better-auth] Blocked origin: ${normalized}`)
   return false
 }
 
-// ----------- Better-Auth Config -----------
+// ----------------- Better-Auth -----------------
 export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
@@ -122,14 +118,13 @@ export const auth = betterAuth({
     }
   },
 
-  // -------- Session config with cross-origin cookies --------
   session: {
-    expiresIn: 30 * 24 * 60 * 60 * 2, // 60 days
+    expiresIn: 60 * 24 * 60 * 60, // 60 days
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60,
-      secure: true, // Required for HTTPS
-      sameSite: 'none' // Allow cross-origin previews
+      secure: true, // required for HTTPS
+      sameSite: 'none' // allow cross-origin previews
     }
   },
 
@@ -138,7 +133,6 @@ export const auth = betterAuth({
   allowedOrigins: allowedOriginsFn,
   secret: process.env.BETTER_AUTH_SECRET!,
   url: process.env.BETTER_AUTH_URL,
-
   trustedOrigins: [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
