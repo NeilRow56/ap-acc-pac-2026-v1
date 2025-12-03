@@ -7,6 +7,10 @@ import {
 import { ac, roles } from '@/lib/permissions'
 import { auth } from './auth'
 export const authClient = createAuthClient({
+  baseURL: '', // <-- keep empty string
+  fetchOptions: {
+    credentials: 'include'
+  },
   plugins: [
     inferAdditionalFields<typeof auth>(),
     adminClient({
@@ -20,6 +24,4 @@ export const authClient = createAuthClient({
     }),
     organizationClient()
   ]
-  /** The base URL of the server (optional if you're using the same domain) */
-  // baseURL: process.env.BETTER_AUTH_URL
 })
