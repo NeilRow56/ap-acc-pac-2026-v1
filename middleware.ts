@@ -1,54 +1,44 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Normalize URLs
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || null
-const DEV_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+export const config = {
+  matcher: ['/((?!_next|favicon.ico|api/auth/.*).*)']
+}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const origin = req.headers.get('origin') || req.headers.get('referer') || null
 
-  if (origin) {
-    try {
-      const normalized = new URL(origin).origin.replace(/\/$/, '')
-      const allowed = [APP_URL, ...DEV_ORIGINS].filter(Boolean)
-      if (
-        !allowed.includes(normalized) &&
-        !normalized.endsWith('.vercel.app')
-      ) {
-        console.warn(
-          `[middleware] Suspicious request origin: ${normalized}. Allowed: ${allowed.join(', ')}`
-        )
-      }
-    } catch {
-      console.warn(`[middleware] Invalid Origin/Referer header: ${origin}`)
-    }
-  }
+  // --- Safe security headers ---
+  res.headers.set('X-Frame-Options', 'DENY')
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()'
+  )
 
-  // Apply security headers only for production
-  if (APP_URL && req.nextUrl.hostname === new URL(APP_URL).hostname) {
+  // HSTS (only on production)
+  if (process.env.NODE_ENV === 'production') {
     res.headers.set(
       'Strict-Transport-Security',
       'max-age=63072000; includeSubDomains; preload'
     )
-    res.headers.set(
-      'Content-Security-Policy',
-      [
-        "default-src 'self'",
-        "script-src 'self'",
-        "connect-src 'self' https://api.resend.com",
-        "img-src 'self' data:",
-        "style-src 'self' 'unsafe-inline'",
-        "font-src 'self' data:"
-      ].join('; ')
-    )
   }
 
-  return res
-}
+  // Safe CSP that does NOT break Better-Auth
+  res.headers.set(
+    'Content-Security-Policy',
+    `
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self' https:;
+      connect-src 'self' https: http://localhost:3000 https://*.vercel.app;
+      frame-ancestors 'none';
+    `.replace(/\s+/g, ' ')
+  )
 
-// Exclude static files and Better-Auth endpoints
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth/.*).*)']
+  return res
 }

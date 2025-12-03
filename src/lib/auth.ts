@@ -1,4 +1,3 @@
-// auth.ts (corrected for TS issues with default + cookieCache)
 import VerifyChangeEmail from '@/components/emails/change-email'
 import ForgotPasswordEmail from '@/components/emails/reset-password'
 import VerifyEmail from '@/components/emails/verify-email'
@@ -17,60 +16,64 @@ import { nextCookies } from 'better-auth/next-js'
 import { ac, roles } from '@/lib/permissions'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY as string)
+const resend = new Resend(process.env.RESEND_API_KEY!)
 
-// ----------------- Helpers -----------------
-function normalizeOrigin(origin: string) {
-  try {
-    return new URL(origin).origin.replace(/\/$/, '').toLowerCase()
-  } catch {
-    return origin.replace(/\/$/, '').toLowerCase()
-  }
+// --- Origin Helpers ---
+function normalize(origin: string) {
+  return origin.replace(/\/$/, '').toLowerCase()
 }
 
-function getRequestOrigin(req: Request): string | null {
-  const origin = req.headers.get('origin')
-  const referer = req.headers.get('referer')
-  if (origin && origin !== 'null') return origin.replace(/\/$/, '')
-  if (referer) {
+function detectOrigin(req: Request): string | null {
+  const o = req.headers.get('origin')
+  if (o && o !== 'null') return normalize(o)
+
+  const r = req.headers.get('referer')
+  if (r) {
     try {
-      const url = new URL(referer)
-      return url.origin.replace(/\/$/, '')
-    } catch {
-      return null
-    }
+      return normalize(new URL(r).origin)
+    } catch {}
   }
+
   const host = req.headers.get('host')
   return host ? `https://${host}` : null
 }
 
-// ----------------- Allowed Origins -----------------
-const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''),
-  process.env.BETTER_AUTH_URL?.replace(/\/$/, ''),
+// --- Allowed Origins (final) ---
+const STATIC_ALLOWED = [
   'http://localhost:3000',
-  'http://127.0.0.1:3000'
-].filter(Boolean) as string[]
+  'http://127.0.0.1:3000',
+  process.env.NEXT_PUBLIC_APP_URL,
+  process.env.BETTER_AUTH_URL
+]
+  .filter(Boolean)
+  .map(o => normalize(o!))
 
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
-  const detected = getRequestOrigin(req) || origin
-  if (!detected || detected === 'null') return true
+  const detected = detectOrigin(req) || origin
+  if (!detected) return true
 
-  const normalized = normalizeOrigin(detected)
+  const n = normalize(detected)
 
-  if (
-    ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === normalized) ||
-    normalized.endsWith('.vercel.app')
-  )
-    return true
+  // Allow localhost
+  if (n.startsWith('http://localhost')) return true
 
-  console.warn(`[better-auth] Blocked origin: ${normalized}`)
+  // Allow exact env URLs
+  if (STATIC_ALLOWED.includes(n)) return true
+
+  // Allow all Vercel preview deployments
+  if (n.endsWith('.vercel.app')) return true
+
+  console.warn('[better-auth] Blocked origin:', n)
   return false
 }
 
-// ----------------- Better-Auth -----------------
+// =======================
+//        AUTH
+// =======================
 export const auth = betterAuth({
   emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       await resend.emails.send({
         from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
@@ -78,13 +81,12 @@ export const auth = betterAuth({
         subject: 'Verify your email',
         react: VerifyEmail({ username: user.name, verifyUrl: url })
       })
-    },
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true
+    }
   },
 
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       await resend.emails.send({
         from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
@@ -96,24 +98,23 @@ export const auth = betterAuth({
           userEmail: user.email
         })
       })
-    },
-    requireEmailVerification: true
+    }
   },
 
   user: {
     deleteUser: { enabled: true },
+
     additionalFields: {
       role: { type: ['user', 'admin', 'owner'], input: false },
-      // TS sometimes complains about the literal `default` shape here.
-      // The runtime default remains `false` but we cast to `any` so TypeScript doesn't error.
       isSuperUser: {
         type: 'boolean' as const,
-        default: false as boolean | (() => boolean)
+        default: false as boolean
       }
     },
+
     changeEmail: {
       enabled: true,
-      async sendChangeEmailVerification({ user, newEmail, url }) {
+      sendChangeEmailVerification: async ({ user, newEmail, url }) => {
         await resend.emails.send({
           from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
           to: user.email,
@@ -125,42 +126,40 @@ export const auth = betterAuth({
   },
 
   session: {
-    // keep the 60 days semantics you used previously
-    expiresIn: 60 * 24 * 60 * 60, // 60 days
+    expiresIn: 60 * 24 * 60 * 60,
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60
-      // Some versions of `better-auth`'s types do not accept `secure`/`sameSite` directly here.
-      // If your package supports them, you may uncomment these two lines.
-      // secure: true,
-      // sameSite: 'none'
-      //
-      // To avoid the TS error we leave them out here. The cookies will still be secure on Vercel
-      // because Vercel serves over HTTPS; if you absolutely need to set SameSite=None, please
-      // upgrade `better-auth` or adjust types accordingly.
+      secure: true,
+      sameSite: 'none'
     }
   },
 
   database: drizzleAdapter(db, { provider: 'pg' }),
+
+  // ❗ Required for Vercel previews
   trustHost: true,
   allowedOrigins: allowedOriginsFn,
-  secret: process.env.BETTER_AUTH_SECRET!,
+
   url: process.env.BETTER_AUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET!,
+
   trustedOrigins: [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     process.env.NEXT_PUBLIC_APP_URL!,
-    process.env.BETTER_AUTH_URL!
+    process.env.BETTER_AUTH_URL!,
+    '*.vercel.app'
   ],
 
   plugins: [
     organization({
       sendInvitationEmail: async data => {
         const inviteLink = `${process.env.BETTER_AUTH_URL}/organization/invites/${data.id}`
+
         await resend.emails.send({
           from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
           to: data.email,
-          subject: "You've been invited to join our organization",
+          subject: "You've been invited",
           react: sendOrganizationInviteEmail({
             email: data.email,
             invitedByUsername: data.inviter.user.name,
@@ -171,7 +170,9 @@ export const auth = betterAuth({
         })
       }
     }),
+
     nextCookies(),
+
     adminPlugin({
       defaultRole: 'user',
       adminRoles: ['admin', 'owner'],
@@ -193,7 +194,7 @@ export const auth = betterAuth({
           return {
             data: {
               ...userSession,
-              activeOrganizationId: membership?.organizationId
+              activeOrganizationId: membership?.organizationId ?? null
             }
           }
         }
@@ -202,5 +203,4 @@ export const auth = betterAuth({
   }
 })
 
-export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'
 export type Session = typeof auth.$Infer.Session
