@@ -52,7 +52,7 @@ function getRequestOrigin(req: Request): string | null {
   return host ? `https://${host}` : null
 }
 
-// --------- Hardened allowedOriginsFn ---------
+// --------- Hardened allowedOriginsFn (production, preview, localhost) ---------
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
   const detected = getRequestOrigin(req) || origin
 
@@ -60,7 +60,7 @@ const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
 
   const cleanOrigin = normalizeOrigin(detected)
 
-  // Allow production, localhost, or any Vercel preview deploy
+  // Allow production, localhost, or any Vercel preview
   if (
     ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin) ||
     cleanOrigin.endsWith('.vercel.app')
@@ -122,9 +122,15 @@ export const auth = betterAuth({
     }
   },
 
+  // -------- Session config with cross-origin cookies --------
   session: {
     expiresIn: 30 * 24 * 60 * 60 * 2, // 60 days
-    cookieCache: { enabled: true, maxAge: 5 * 60 }
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+      secure: true, // required for HTTPS / Vercel
+      sameSite: 'none' // allow cross-origin preview deploys
+    }
   },
 
   database: drizzleAdapter(db, { provider: 'pg' }),
