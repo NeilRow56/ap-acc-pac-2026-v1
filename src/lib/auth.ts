@@ -125,15 +125,6 @@ export const auth = betterAuth({
     }
   },
 
-  // session: {
-  //   expiresIn: 60 * 24 * 60 * 60,
-  //   cookieCache: {
-  //     enabled: true,
-  //     secure: true,
-  //     sameSite: 'none'
-  //   }
-  // },
-
   session: {
     expiresIn: 60 * 24 * 60 * 60, // 60 days
     refresh: {
@@ -168,7 +159,7 @@ export const auth = betterAuth({
   plugins: [
     organization({
       sendInvitationEmail: async data => {
-        const inviteLink = `${process.env.BETTER_AUTH_URL}/organization/invites/${data.id}`
+        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/organization/invites/${data.id}`
 
         await resend.emails.send({
           from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_ADDRESS}>`,
