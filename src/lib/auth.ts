@@ -22,9 +22,6 @@ const resend = new Resend(process.env.RESEND_API_KEY as string)
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''), // production
   process.env.BETTER_AUTH_URL?.replace(/\/$/, ''), // production
-  process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-    : undefined, // preview deploy
   'http://localhost:3000',
   'http://127.0.0.1:3000'
 ].filter(Boolean) as string[]
@@ -55,22 +52,23 @@ function getRequestOrigin(req: Request): string | null {
   return host ? `https://${host}` : null
 }
 
-// --------- Hardened allowedOriginsFn (Option 2) ---------
+// --------- Hardened allowedOriginsFn (supports production, localhost, and all Vercel previews) ---------
 const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
-  const detected = getRequestOrigin(req)
-  console.log(
-    '[BetterAuth] Origin header:',
-    origin,
-    'Detected origin:',
-    detected
-  )
+  const detected = getRequestOrigin(req) || origin
 
+  // Allow null origins (Safari/Chrome quirks)
   if (!detected || detected === 'null') return true
 
   const cleanOrigin = normalizeOrigin(detected)
-  if (ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin)) return true
 
-  console.warn(`[BetterAuth] Blocked origin: ${cleanOrigin}`)
+  // Allow production, localhost, or any Vercel preview deploys
+  if (
+    ALLOWED_ORIGINS.some(o => normalizeOrigin(o) === cleanOrigin) || // prod & localhost
+    cleanOrigin.endsWith('.vercel.app') // preview deploys
+  )
+    return true
+
+  console.warn(`[better-auth] Blocked origin: ${cleanOrigin}`)
   return false
 }
 
