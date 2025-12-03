@@ -125,12 +125,26 @@ export const auth = betterAuth({
     }
   },
 
+  // session: {
+  //   expiresIn: 60 * 24 * 60 * 60,
+  //   cookieCache: {
+  //     enabled: true,
+  //     secure: true,
+  //     sameSite: 'none'
+  //   }
+  // },
+
   session: {
-    expiresIn: 60 * 24 * 60 * 60,
+    expiresIn: 60 * 24 * 60 * 60, // 60 days
+    refresh: {
+      enabled: true,
+      interval: 5 * 60 // refresh every 5 minutes
+    },
     cookieCache: {
       enabled: true,
-      secure: true,
-      sameSite: 'none'
+      maxAge: 5 * 60,
+      sameSite: 'lax',
+      secure: true
     }
   },
 
