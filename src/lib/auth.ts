@@ -54,14 +54,14 @@ const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
 
   const n = normalize(detected)
 
-  // Allow localhost
+  // allow localhost
   if (n.startsWith('http://localhost')) return true
 
-  // Allow exact env URLs
+  // allow exact env URLs
   if (STATIC_ALLOWED.includes(n)) return true
 
-  // Allow all Vercel preview deployments
-  if (n.endsWith('.vercel.app')) return true
+  // allow all Vercel previews and subdomains
+  if (n.endsWith('.vercel.app') || n.includes('.vercel.app')) return true
 
   console.warn('[better-auth] Blocked origin:', n)
   return false
