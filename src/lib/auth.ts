@@ -18,32 +18,12 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
-// -------- iOS Origin Fix Helper ---------
-function getRequestOrigin(req: Request): string | null {
-  const origin = req.headers.get('origin')
-  const referer = req.headers.get('referer')
-
-  if (origin && origin !== 'null') return origin.replace(/\/$/, '')
-
-  if (referer) {
-    try {
-      const url = new URL(referer)
-      return url.origin.replace(/\/$/, '')
-    } catch {
-      return null
-    }
-  }
-
-  const host = req.headers.get('host')
-  return host ? `https://${host}` : null
-}
-
-// Build allowed origin list from env (prod, previews, dev)
+// ----------- Allowed Origins & Helpers -----------
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, ''),
   process.env.BETTER_AUTH_URL?.replace(/\/$/, ''),
   process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`
+    ? `https://${process.env.VERCEL_URL.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
     : undefined,
   'http://localhost:3000',
   'http://127.0.0.1:3000'
@@ -57,7 +37,38 @@ function normalizeOrigin(origin: string) {
   }
 }
 
-// --------- Better-Auth Root Config ---------
+function getRequestOrigin(req: Request): string | null {
+  const origin = req.headers.get('origin')
+  const referer = req.headers.get('referer')
+
+  if (origin && origin !== 'null') return origin.replace(/\/$/, '')
+  if (referer) {
+    try {
+      const url = new URL(referer)
+      return url.origin.replace(/\/$/, '')
+    } catch {
+      return null
+    }
+  }
+
+  const host = req.headers.get('host')
+  return host ? `https://${host}` : null
+}
+
+const allowedOriginsFn = (origin: string | null | undefined, req: Request) => {
+  if (!origin || origin === 'null') return true
+
+  const cleanOrigin = normalizeOrigin(getRequestOrigin(req) || origin)
+
+  for (const allowed of ALLOWED_ORIGINS) {
+    if (normalizeOrigin(allowed) === cleanOrigin) return true
+  }
+
+  console.warn(`[better-auth] Blocked origin: ${cleanOrigin}`)
+  return false
+}
+
+// ----------- Better-Auth Root Config -----------
 export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
@@ -92,13 +103,9 @@ export const auth = betterAuth({
   user: {
     deleteUser: { enabled: true },
     additionalFields: {
-      role: {
-        type: ['user', 'admin', 'owner'],
-        input: false
-      },
+      role: { type: ['user', 'admin', 'owner'], input: false },
       isSuperUser: { type: 'boolean', default: false }
     },
-
     changeEmail: {
       enabled: true,
       async sendChangeEmailVerification({ user, newEmail, url }) {
@@ -114,38 +121,21 @@ export const auth = betterAuth({
 
   session: {
     expiresIn: 30 * 24 * 60 * 60 * 2, // 60 days
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60
-    }
+    cookieCache: { enabled: true, maxAge: 5 * 60 }
   },
 
-  database: drizzleAdapter(db, {
-    provider: 'pg'
-  }),
-
+  database: drizzleAdapter(db, { provider: 'pg' }),
   trustHost: true,
-
-  allowedOrigins: (origin: string | null | undefined, req: Request) => {
-    const detected = getRequestOrigin(req)
-    if (!detected) return true
-
-    const normalized = normalizeOrigin(detected)
-    for (const allowed of ALLOWED_ORIGINS) {
-      if (normalizeOrigin(allowed) === normalized) return true
-    }
-
-    const host = req.headers.get('host')
-    if (host && normalized.endsWith(host.toLowerCase())) return true
-
-    console.warn(`[better-auth] Blocked origin: ${normalized}`)
-    return false
-  },
-
+  allowedOrigins: allowedOriginsFn,
   secret: process.env.BETTER_AUTH_SECRET!,
   url: process.env.BETTER_AUTH_URL,
 
-  trustedOrigins: ['http://localhost:3000', process.env.BETTER_AUTH_URL!],
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    process.env.NEXT_PUBLIC_APP_URL!,
+    process.env.BETTER_AUTH_URL!
+  ],
 
   plugins: [
     organization({
@@ -197,5 +187,4 @@ export const auth = betterAuth({
 })
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | 'UNKNOWN'
-
 export type Session = typeof auth.$Infer.Session
