@@ -1,11 +1,6 @@
 import type { NextConfig } from 'next'
-import path from 'path'
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: path.resolve(__dirname) // Use project root
-  },
-  outputFileTracingRoot: path.resolve(__dirname), // Must match turbopack.root
   reactCompiler: true,
   images: {
     remotePatterns: [
@@ -24,3 +19,8 @@ const nextConfig: NextConfig = {
 }
 
 export default nextConfig
+//Next.js 16 automatically sets both turbopack.root and outputFileTracingRoot to the project root if you don’t manually override them.
+
+//No hardcoded paths → no warnings on Vercel.
+
+//Your reactCompiler and images.remotePatterns stay intact.
