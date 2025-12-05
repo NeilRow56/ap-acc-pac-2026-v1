@@ -1,10 +1,11 @@
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const nextConfig: NextConfig = {
-  /* config options here */
   turbopack: {
-    root: '/Users/neilrowland/code/2026/wpaccpac_2026_v1'
+    root: path.resolve(__dirname) // Use project root
   },
+  outputFileTracingRoot: path.resolve(__dirname), // Must match turbopack.root
   reactCompiler: true,
   images: {
     remotePatterns: [
